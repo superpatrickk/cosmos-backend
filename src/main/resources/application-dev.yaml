@@ -1,0 +1,51 @@
+spring:
+  application:
+    name: cosmos
+  datasource:
+    url: jdbc:mysql://localhost:3306/cosmos_db?useSSL=false&serverTimezone=Asia/Manila&allowPublicKeyRetrieval=true
+    username: cosmos_db
+    password: password
+    driver-class-name: com.mysql.cj.jdbc.Driver
+  jpa:
+    hibernate:
+      ddl-auto: update
+    show-sql: true
+    open-in-view: false
+    properties:
+      hibernate:
+        format_sql: true
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: patrickdecoy1@gmail.com
+    password: nmiaoeumazfohwjy
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          starttls.required: true
+          ssl.trust: smtp.gmail.com
+  thymeleaf:
+    cache: false
+    check-template-location: false
+
+server:
+  port: 8080
+  
+
+jwt:
+  secret: c0smos_s3crEtkey_2026_dev_secret_key_1234
+  access-token-expiration: 900000
+  refresh-token-expiration: 604800000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: [health, info]
+
+app:
+  cookie:
+    domain: localhost
