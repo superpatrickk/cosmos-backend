@@ -12,7 +12,10 @@ import lombok.NoArgsConstructor;
 public class DashboardScheduleItemResponse {
     private Long id;
     private String code;
-    private Integer students;
+    private String subjectName;
+    private String faculty;
+    private String courseCode;
+    private String section;
     private String startTime;
     private String endTime;
     private String room;

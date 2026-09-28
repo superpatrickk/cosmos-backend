@@ -26,7 +26,9 @@ public class SubjectService {
             subjects = subjectRepository.findAllByOrderByCodeAsc();
         } else {
             String q = search.trim();
-            subjects = subjectRepository.findByCodeContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCourseContainingIgnoreCaseOrYearLevelContainingIgnoreCase(q, q, q, q);
+                subjects = subjectRepository.findByCodeContainingIgnoreCaseOrNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCourseContainingIgnoreCaseOrYearLevelContainingIgnoreCase(
+                    q, q, q, q, q
+                );
         }
         return subjects.stream().map(this::toResponse).toList();
     }
@@ -43,6 +45,9 @@ public class SubjectService {
         }
         Subject subject = Subject.builder()
                 .code(normalizedCode)
+                .name(request.getName() == null || request.getName().isBlank()
+                        ? request.getDescription().trim()
+                        : request.getName().trim())
                 .units(request.getUnits() != null ? request.getUnits() : 3)
                 .type(request.getType().trim())
                 .prerequisite(request.getPrerequisite().trim())
@@ -64,6 +69,9 @@ public class SubjectService {
                 throw new DataIntegrityViolationException("A subject with this code already exists.");
             }
             subject.setCode(normalizedCode);
+        }
+        if (request.getName() != null && !request.getName().isBlank()) {
+            subject.setName(request.getName().trim());
         }
         if (request.getUnits() != null) {
             subject.setUnits(request.getUnits());
@@ -107,6 +115,9 @@ public class SubjectService {
         return SubjectResponse.builder()
                 .id(subject.getId())
                 .code(subject.getCode())
+                .name(subject.getName() == null || subject.getName().isBlank()
+                    ? subject.getDescription()
+                    : subject.getName())
                 .units(subject.getUnits())
                 .type(subject.getType())
                 .prerequisite(subject.getPrerequisite())

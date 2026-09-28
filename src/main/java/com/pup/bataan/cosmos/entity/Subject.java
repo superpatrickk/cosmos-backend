@@ -23,6 +23,9 @@ public class Subject {
     @Column(nullable = false, unique = true, length = 20)
     private String code;
 
+    @Column(name = "subject_name", length = 255)
+    private String name;
+
     @Column(nullable = false)
     @Builder.Default
     private Integer units = 3;
@@ -53,6 +56,7 @@ public class Subject {
     @PreUpdate
     private void normalize() {
         if (code != null) code = code.trim().toUpperCase();
+        if (name != null) name = name.trim();
         if (type != null) type = type.trim();
         if (prerequisite != null) prerequisite = prerequisite.trim();
         if (course != null) course = course.trim().toUpperCase();

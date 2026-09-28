@@ -2,52 +2,32 @@ package com.pup.bataan.cosmos.service;
 
 import com.pup.bataan.cosmos.dto.response.DashboardScheduleItemResponse;
 import com.pup.bataan.cosmos.dto.response.DashboardStatsResponse;
+import com.pup.bataan.cosmos.entity.RoomStatus;
+import com.pup.bataan.cosmos.entity.ScheduleEntry;
+import com.pup.bataan.cosmos.repository.RoomRepository;
+import com.pup.bataan.cosmos.repository.ScheduleRepository;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
+import java.time.format.TextStyle;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
 
 @Service
+@RequiredArgsConstructor
+@Transactional(readOnly = true)
 public class DashboardService {
 
-    private static final Map<String, List<DashboardScheduleItemResponse>> SCHEDULE_BY_DAY = Map.of(
-            "monday", List.of(
-                    DashboardScheduleItemResponse.builder().id(1L).code("CS101").students(35).startTime("8:00 AM").endTime("10:00 AM").room("RM002").build(),
-                    DashboardScheduleItemResponse.builder().id(2L).code("MATH101").students(40).startTime("10:00 AM").endTime("12:00 PM").room("RM003").build(),
-                    DashboardScheduleItemResponse.builder().id(3L).code("EE201").students(28).startTime("1:00 PM").endTime("3:00 PM").room("RM005").build(),
-                    DashboardScheduleItemResponse.builder().id(4L).code("BA105").students(45).startTime("3:00 PM").endTime("5:00 PM").room("RM001").build()
-            ),
-            "tuesday", List.of(
-                    DashboardScheduleItemResponse.builder().id(5L).code("CS201").students(30).startTime("8:00 AM").endTime("10:00 AM").room("RM004").build(),
-                    DashboardScheduleItemResponse.builder().id(6L).code("EE201").students(28).startTime("11:00 AM").endTime("1:00 PM").room("RM002").build()
-            ),
-            "wednesday", List.of(
-                    DashboardScheduleItemResponse.builder().id(7L).code("BA105").students(45).startTime("9:00 AM").endTime("11:00 AM").room("RM001").build(),
-                    DashboardScheduleItemResponse.builder().id(8L).code("MATH101").students(40).startTime("1:00 PM").endTime("3:00 PM").room("RM003").build(),
-                    DashboardScheduleItemResponse.builder().id(9L).code("CS101").students(35).startTime("3:00 PM").endTime("5:00 PM").room("RM005").build()
-            ),
-            "thursday", List.of(
-                    DashboardScheduleItemResponse.builder().id(10L).code("CS201").students(30).startTime("8:00 AM").endTime("10:00 AM").room("RM002").build()
-            ),
-            "friday", List.of(
-                    DashboardScheduleItemResponse.builder().id(11L).code("EE201").students(28).startTime("10:00 AM").endTime("12:00 PM").room("RM004").build(),
-                    DashboardScheduleItemResponse.builder().id(12L).code("BA105").students(45).startTime("2:00 PM").endTime("4:00 PM").room("RM001").build()
-            )
-    );
+    private final RoomRepository roomRepository;
+    private final ScheduleRepository scheduleRepository;
 
     public DashboardStatsResponse getStats() {
-        List<DashboardScheduleItemResponse> todaySchedule = getScheduleByDay(null);
-        int occupiedRooms = (int) todaySchedule.stream()
-                .map(DashboardScheduleItemResponse::getRoom)
-                .distinct()
-                .count();
-
-        int totalRooms = 48;
-        int underMaintenance = 2;
-        int availableRooms = Math.max(0, totalRooms - occupiedRooms - underMaintenance);
+        int totalRooms = Math.toIntExact(roomRepository.count());
+        int availableRooms = Math.toIntExact(roomRepository.countByStatus(RoomStatus.AVAILABLE));
+        int occupiedRooms = Math.toIntExact(roomRepository.countByStatus(RoomStatus.OCCUPIED));
+        int underMaintenance = Math.toIntExact(roomRepository.countByStatus(RoomStatus.MAINTENANCE));
 
         return DashboardStatsResponse.builder()
                 .totalRooms(totalRooms)
@@ -59,33 +39,34 @@ public class DashboardService {
 
     public List<DashboardScheduleItemResponse> getScheduleByDay(String day) {
         String normalizedDay = normalizeDay(day);
-        return new ArrayList<>(SCHEDULE_BY_DAY.getOrDefault(normalizedDay, List.of()));
+        return scheduleRepository.findByDayIgnoreCaseAndStatusIgnoreCaseOrderByStartTimeAsc(normalizedDay, "Active")
+                .stream()
+                .map(this::toScheduleItem)
+                .toList();
     }
 
     private String normalizeDay(String day) {
         if (day == null || day.isBlank()) {
             return getTodayName();
         }
-
-        String normalized = day.trim().toLowerCase(Locale.ROOT);
-        return switch (normalized) {
-            case "monday" -> "monday";
-            case "tuesday" -> "tuesday";
-            case "wednesday" -> "wednesday";
-            case "thursday" -> "thursday";
-            case "friday" -> "friday";
-            default -> getTodayName();
-        };
+        return day.trim();
     }
 
     private String getTodayName() {
-        return switch (LocalDate.now().getDayOfWeek()) {
-            case MONDAY -> "monday";
-            case TUESDAY -> "tuesday";
-            case WEDNESDAY -> "wednesday";
-            case THURSDAY -> "thursday";
-            case FRIDAY -> "friday";
-            default -> "monday";
-        };
+        return LocalDate.now().getDayOfWeek().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
+    }
+
+    private DashboardScheduleItemResponse toScheduleItem(ScheduleEntry entry) {
+        return DashboardScheduleItemResponse.builder()
+                .id(entry.getId())
+                .code(entry.getSubjectCode())
+                .subjectName(entry.getSubjectName())
+                .faculty(entry.getFacultyName())
+                .courseCode(entry.getCourseCode())
+                .section(entry.getSection())
+                .startTime(entry.getStartTime())
+                .endTime(entry.getEndTime())
+                .room(entry.getRoomName())
+                .build();
     }
 }

@@ -12,8 +12,9 @@ public interface SubjectRepository extends JpaRepository<Subject, Long> {
     Optional<Subject> findByCode(String code);
     boolean existsByCode(String code);
     List<Subject> findAllByOrderByCodeAsc();
-        List<Subject> findByCodeContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCourseContainingIgnoreCaseOrYearLevelContainingIgnoreCase(
+    List<Subject> findByCodeContainingIgnoreCaseOrNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCourseContainingIgnoreCaseOrYearLevelContainingIgnoreCase(
             String code,
+            String name,
             String description,
             String course,
             String yearLevel

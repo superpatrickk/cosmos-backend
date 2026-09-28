@@ -16,6 +16,8 @@ public class CreateSubjectRequest {
     @NotBlank(message = "Subject code is required")
     private String code;
 
+    private String name;
+
     @Min(value = 1, message = "Units must be at least 1")
     private Integer units;
 

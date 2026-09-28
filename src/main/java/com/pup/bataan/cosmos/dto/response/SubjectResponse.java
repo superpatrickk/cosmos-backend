@@ -13,6 +13,7 @@ public class SubjectResponse {
 
     private Long id;
     private String code;
+    private String name;
     private Integer units;
     private String type;
     private String prerequisite;

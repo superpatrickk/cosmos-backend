@@ -10,6 +10,8 @@ import java.util.List;
 public interface ScheduleRepository extends JpaRepository<ScheduleEntry, Long> {
     List<ScheduleEntry> findAllByOrderByDayAsc();
 
+    List<ScheduleEntry> findByDayIgnoreCaseAndStatusIgnoreCaseOrderByStartTimeAsc(String day, String status);
+
     List<ScheduleEntry> findByFacultyNameContainingIgnoreCase(String facultyName);
 
     List<ScheduleEntry> findByDayContainingIgnoreCaseOrSubjectNameContainingIgnoreCaseOrFacultyNameContainingIgnoreCase(
