@@ -35,7 +35,7 @@ public class CreateScheduleRequest {
     @NotBlank(message = "End time is required")
     private String endTime;
 
-    @NotBlank(message = "Course is required")
+    @NotBlank(message = "Program is required")
     private String courseCode;
 
     @NotBlank(message = "Year level is required")

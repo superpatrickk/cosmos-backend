@@ -37,7 +37,7 @@ public class CourseService {
     @Transactional
     public CourseResponse create(CreateCourseRequest request) {
         if (courseRepository.findByCode(request.getCode().trim().toUpperCase(Locale.ROOT)).isPresent()) {
-            throw new DataIntegrityViolationException("A course with this code already exists.");
+            throw new DataIntegrityViolationException("A program with this code already exists.");
         }
 
         Course course = Course.builder()
@@ -61,7 +61,7 @@ public class CourseService {
         if (request.getCode() != null && !request.getCode().isBlank()) {
             String normalizedCode = request.getCode().trim().toUpperCase(Locale.ROOT);
             if (!normalizedCode.equals(course.getCode()) && courseRepository.findByCode(normalizedCode).isPresent()) {
-                throw new DataIntegrityViolationException("A course with this code already exists.");
+                throw new DataIntegrityViolationException("A program with this code already exists.");
             }
             course.setCode(normalizedCode);
         }
@@ -100,7 +100,7 @@ public class CourseService {
 
     private Course findEntityById(Long id) {
         return courseRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException("Course not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Program not found with id: " + id));
     }
 
     private CourseResponse toResponse(Course course) {

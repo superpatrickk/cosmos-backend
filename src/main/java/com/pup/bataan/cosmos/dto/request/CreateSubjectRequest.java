@@ -27,7 +27,7 @@ public class CreateSubjectRequest {
     @NotBlank(message = "Prerequisite is required")
     private String prerequisite;
 
-    @NotBlank(message = "Course is required")
+    @NotBlank(message = "Program is required")
     private String course;
 
     @NotBlank(message = "Year level is required")

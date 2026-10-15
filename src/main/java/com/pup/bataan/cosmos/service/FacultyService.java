@@ -41,15 +41,22 @@ public class FacultyService {
 
     @Transactional
     public FacultyMemberResponse create(CreateFacultyMemberRequest request) {
-        if (facultyMemberRepository.findByEmail(request.getEmail().trim().toLowerCase()).isPresent()) {
+        String email = normalizeOptional(request.getEmail());
+        if (email != null && facultyMemberRepository.findByEmail(email).isPresent()) {
             throw new DataIntegrityViolationException("A faculty member with this email already exists.");
+        }
+
+        List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment());
+        if (programs.isEmpty()) {
+            throw new IllegalArgumentException("At least one program is required.");
         }
 
         FacultyMember facultyMember = FacultyMember.builder()
                 .name(request.getName().trim())
-                .department(request.getDepartment().trim())
-                .email(request.getEmail().trim().toLowerCase(Locale.ROOT))
-                .phone(request.getPhone().trim())
+                .programs(programs)
+                .department(String.join(", ", programs))
+                .email(email)
+                .phone(normalizeOptional(request.getPhone()))
                 .specialization(request.getSpecialization().trim())
                 .status(parseStatus(request.getStatus()))
                 .build();
@@ -64,19 +71,24 @@ public class FacultyService {
         if (request.getName() != null && !request.getName().isBlank()) {
             facultyMember.setName(request.getName().trim());
         }
-        if (request.getDepartment() != null && !request.getDepartment().isBlank()) {
-            facultyMember.setDepartment(request.getDepartment().trim());
+        if (request.getPrograms() != null || request.getDepartment() != null) {
+            List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment());
+            if (programs.isEmpty()) {
+                throw new IllegalArgumentException("At least one program is required.");
+            }
+            facultyMember.setPrograms(programs);
+            facultyMember.setDepartment(String.join(", ", programs));
         }
-        if (request.getEmail() != null && !request.getEmail().isBlank()) {
-            String normalizedEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
-            if (!normalizedEmail.equals(facultyMember.getEmail())
+        if (request.getEmail() != null) {
+            String normalizedEmail = normalizeOptional(request.getEmail());
+            if (normalizedEmail != null && !normalizedEmail.equals(facultyMember.getEmail())
                     && facultyMemberRepository.findByEmail(normalizedEmail).isPresent()) {
                 throw new DataIntegrityViolationException("A faculty member with this email already exists.");
             }
             facultyMember.setEmail(normalizedEmail);
         }
-        if (request.getPhone() != null && !request.getPhone().isBlank()) {
-            facultyMember.setPhone(request.getPhone().trim());
+        if (request.getPhone() != null) {
+            facultyMember.setPhone(normalizeOptional(request.getPhone()));
         }
         if (request.getSpecialization() != null && !request.getSpecialization().isBlank()) {
             facultyMember.setSpecialization(request.getSpecialization().trim());
@@ -103,12 +115,35 @@ public class FacultyService {
         return FacultyMemberResponse.builder()
                 .id(facultyMember.getId())
                 .name(facultyMember.getName())
+                .programs(facultyMember.getPrograms())
                 .department(facultyMember.getDepartment())
                 .email(facultyMember.getEmail())
                 .phone(facultyMember.getPhone())
                 .specialization(facultyMember.getSpecialization())
                 .status(formatStatus(facultyMember.getStatus()))
                 .build();
+    }
+
+    private List<String> normalizePrograms(List<String> requestedPrograms, String legacyDepartment) {
+        List<String> source = requestedPrograms;
+        if ((source == null || source.isEmpty()) && legacyDepartment != null && !legacyDepartment.isBlank()) {
+            source = List.of(legacyDepartment.split(","));
+        }
+        if (source == null) {
+            return List.of();
+        }
+        return source.stream()
+                .filter(program -> program != null && !program.isBlank())
+                .map(program -> program.trim().toUpperCase(Locale.ROOT))
+                .distinct()
+                .toList();
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim().toLowerCase(Locale.ROOT);
     }
 
     private FacultyStatus parseStatus(String status) {

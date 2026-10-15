@@ -17,10 +17,7 @@
     <artifactId>cosmos</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>cosmos</name>
-    <description>
-        Classroom Occupancy and Student Monitoring
-        and Oversight System - PUP Bataan Campus
-    </description>
+    <description>Classroom Occupancy and Scheduling Management Optimization System - PUP Bataan Campus</description>
 
     <properties>
         <java.version>21</java.version>

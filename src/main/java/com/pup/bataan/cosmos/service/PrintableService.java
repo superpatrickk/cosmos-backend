@@ -32,7 +32,7 @@ public class PrintableService {
         return all.stream()
                 .filter(s -> semester == null || semester.isBlank() || semester.equals(s.getSemester()))
                 .filter(s -> academicYear == null || academicYear.isBlank() || academicYear.equals(s.getAcademicYear()))
-                .filter(s -> course == null || course.isBlank() || course.equals("All Courses") || course.equals(s.getCourseCode()))
+                .filter(s -> course == null || course.isBlank() || course.equals("All Programs") || course.equals("All Courses") || course.equals(s.getCourseCode()))
                 .filter(s -> faculty == null || faculty.isBlank() || faculty.equals("All Faculty") || faculty.equals(s.getFacultyName()))
                 .filter(s -> room == null || room.isBlank() || room.equals("All Rooms") || room.equals(s.getRoomName()))
                 .sorted(Comparator.comparing(ScheduleEntry::getFacultyName).thenComparing(ScheduleEntry::getDay))

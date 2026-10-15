@@ -7,6 +7,11 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Locale;
+import java.util.stream.Collectors;
+
 @Entity
 @Table(name = "faculty_members")
 @Getter
@@ -26,11 +31,17 @@ public class FacultyMember {
     @Column(nullable = false, length = 100)
     private String department;
 
-    @Column(nullable = false, unique = true, length = 150)
+    @Column(unique = true, length = 150)
     private String email;
 
-    @Column(nullable = false, length = 20)
+    @Column(length = 20)
     private String phone;
+
+    @ElementCollection(fetch = FetchType.EAGER)
+    @CollectionTable(name = "faculty_member_programs", joinColumns = @JoinColumn(name = "faculty_member_id"))
+    @Column(name = "program_code", nullable = false, length = 20)
+    @Builder.Default
+    private List<String> programs = new ArrayList<>();
 
     @Column(nullable = false, length = 100)
     private String specialization;
@@ -46,6 +57,14 @@ public class FacultyMember {
         if (name != null) {
             name = name.trim();
         }
+        if (programs == null) {
+            programs = new ArrayList<>();
+        }
+        programs = programs.stream()
+                .filter(program -> program != null && !program.isBlank())
+                .map(program -> program.trim().toUpperCase(Locale.ROOT))
+                .distinct()
+                .collect(Collectors.toCollection(ArrayList::new));
         if (department != null) {
             department = department.trim();
         }

@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.List;
+
 @Data
 @Builder
 @NoArgsConstructor
@@ -16,14 +18,14 @@ public class CreateFacultyMemberRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
-    @NotBlank(message = "Department is required")
+    private List<String> programs;
+
+    // Kept for older clients; new clients should submit programs.
     private String department;
 
-    @NotBlank(message = "Email is required")
     @Email(message = "Please provide a valid email address")
     private String email;
 
-    @NotBlank(message = "Phone is required")
     private String phone;
 
     @NotBlank(message = "Specialization is required")

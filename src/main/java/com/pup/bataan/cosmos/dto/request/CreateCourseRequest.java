@@ -13,10 +13,10 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class CreateCourseRequest {
 
-    @NotBlank(message = "Course code is required")
+    @NotBlank(message = "Program code is required")
     private String code;
 
-    @NotBlank(message = "Course name is required")
+    @NotBlank(message = "Program name is required")
     private String name;
 
     @NotBlank(message = "Department is required")
