@@ -14,6 +14,7 @@ import lombok.NoArgsConstructor;
 public class FacultyMemberResponse {
     private Long id;
     private String name;
+    private String type;
     private List<String> programs;
     private String department;
     private String email;

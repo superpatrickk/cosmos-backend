@@ -28,6 +28,9 @@ public class FacultyMember {
     @Column(nullable = false, length = 100)
     private String name;
 
+    @Column(length = 40)
+    private String type;
+
     @Column(nullable = false, length = 100)
     private String department;
 
@@ -70,9 +73,13 @@ public class FacultyMember {
         }
         if (email != null) {
             email = email.trim().toLowerCase();
+        } else {
+            email = "";
         }
         if (phone != null) {
             phone = phone.trim();
+        } else {
+            phone = "";
         }
         if (specialization != null) {
             specialization = specialization.trim();

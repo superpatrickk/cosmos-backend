@@ -10,7 +10,7 @@ import java.util.Optional;
 @Repository
 public interface SubjectRepository extends JpaRepository<Subject, Long> {
     Optional<Subject> findByCode(String code);
-    boolean existsByCode(String code);
+    boolean existsByCourseAndCode(String course, String code);
     List<Subject> findAllByOrderByCodeAsc();
     List<Subject> findByCodeContainingIgnoreCaseOrNameContainingIgnoreCaseOrDescriptionContainingIgnoreCaseOrCourseContainingIgnoreCaseOrYearLevelContainingIgnoreCase(
             String code,

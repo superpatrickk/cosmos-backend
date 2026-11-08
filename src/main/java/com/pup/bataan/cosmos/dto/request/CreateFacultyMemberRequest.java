@@ -18,6 +18,8 @@ public class CreateFacultyMemberRequest {
     @NotBlank(message = "Name is required")
     private String name;
 
+    private String type;
+
     private List<String> programs;
 
     // Kept for older clients; new clients should submit programs.

@@ -14,6 +14,7 @@ import java.util.List;
 @AllArgsConstructor
 public class UpdateFacultyMemberRequest {
     private String name;
+    private String type;
     private List<String> programs;
     // Kept for older clients; new clients should submit programs.
     private String department;

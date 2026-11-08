@@ -8,7 +8,12 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "subjects")
+@Table(
+    name = "subjects",
+    uniqueConstraints = {
+        @UniqueConstraint(name = "uk_subjects_course_code", columnNames = {"course", "code"})
+    }
+)
 @Getter
 @Setter
 @NoArgsConstructor
@@ -20,7 +25,7 @@ public class Subject {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(nullable = false, unique = true, length = 20)
+    @Column(nullable = false, length = 20)
     private String code;
 
     @Column(name = "subject_name", length = 255)

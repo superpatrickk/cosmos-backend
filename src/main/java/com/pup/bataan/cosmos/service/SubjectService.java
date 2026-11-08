@@ -40,9 +40,12 @@ public class SubjectService {
     @Transactional
     public SubjectResponse create(CreateSubjectRequest request) {
         String normalizedCode = request.getCode().trim().toUpperCase();
-        if (subjectRepository.existsByCode(normalizedCode)) {
-            throw new DataIntegrityViolationException("A subject with this code already exists.");
+        String normalizedCourse = request.getCourse().trim().toUpperCase();
+
+        if (subjectRepository.existsByCourseAndCode(normalizedCourse, normalizedCode)) {
+            throw new DataIntegrityViolationException("This subject already exists for the selected program.");
         }
+
         Subject subject = Subject.builder()
                 .code(normalizedCode)
                 .name(request.getName() == null || request.getName().isBlank()
@@ -51,7 +54,7 @@ public class SubjectService {
                 .units(request.getUnits() != null ? request.getUnits() : 3)
                 .type(request.getType().trim())
                 .prerequisite(request.getPrerequisite().trim())
-                .course(request.getCourse().trim().toUpperCase())
+                .course(normalizedCourse)
                 .yearLevel(request.getYearLevel().trim())
                 .semester(request.getSemester().trim())
                 .description(request.getDescription().trim())
@@ -63,12 +66,25 @@ public class SubjectService {
     @Transactional
     public SubjectResponse update(Long id, UpdateSubjectRequest request) {
         Subject subject = findEntityById(id);
+        String updatedCode = subject.getCode();
+        String updatedCourse = subject.getCourse();
+
         if (request.getCode() != null && !request.getCode().isBlank()) {
-            String normalizedCode = request.getCode().trim().toUpperCase();
-            if (!normalizedCode.equals(subject.getCode()) && subjectRepository.existsByCode(normalizedCode)) {
-                throw new DataIntegrityViolationException("A subject with this code already exists.");
+            updatedCode = request.getCode().trim().toUpperCase();
+        }
+
+        if (request.getCourse() != null && !request.getCourse().isBlank()) {
+            updatedCourse = request.getCourse().trim().toUpperCase();
+        }
+
+        if (!updatedCode.equals(subject.getCode()) || !updatedCourse.equals(subject.getCourse())) {
+            if (subjectRepository.existsByCourseAndCode(updatedCourse, updatedCode)) {
+                throw new DataIntegrityViolationException("This subject already exists for the selected program.");
             }
-            subject.setCode(normalizedCode);
+        }
+
+        if (request.getCode() != null && !request.getCode().isBlank()) {
+            subject.setCode(updatedCode);
         }
         if (request.getName() != null && !request.getName().isBlank()) {
             subject.setName(request.getName().trim());
@@ -83,7 +99,7 @@ public class SubjectService {
             subject.setPrerequisite(request.getPrerequisite().trim());
         }
         if (request.getCourse() != null && !request.getCourse().isBlank()) {
-            subject.setCourse(request.getCourse().trim().toUpperCase());
+            subject.setCourse(updatedCourse);
         }
         if (request.getYearLevel() != null && !request.getYearLevel().isBlank()) {
             subject.setYearLevel(request.getYearLevel().trim());
