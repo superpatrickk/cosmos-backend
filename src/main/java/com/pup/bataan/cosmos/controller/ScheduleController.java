@@ -2,6 +2,7 @@ package com.pup.bataan.cosmos.controller;
 
 import com.pup.bataan.cosmos.dto.request.CreateScheduleRequest;
 import com.pup.bataan.cosmos.dto.request.UpdateScheduleRequest;
+import com.pup.bataan.cosmos.dto.response.ScheduleConflictCheckResponse;
 import com.pup.bataan.cosmos.entity.ScheduleEntry;
 import com.pup.bataan.cosmos.service.ScheduleService;
 import jakarta.validation.Valid;
@@ -32,6 +33,13 @@ public class ScheduleController {
     @PostMapping
     public ResponseEntity<ScheduleEntry> create(@Valid @RequestBody CreateScheduleRequest request) {
         return ResponseEntity.status(HttpStatus.CREATED).body(scheduleService.create(request));
+    }
+
+    @PostMapping("/check-conflicts")
+    public ResponseEntity<ScheduleConflictCheckResponse> checkConflicts(
+            @Valid @RequestBody CreateScheduleRequest request
+    ) {
+        return ResponseEntity.ok(scheduleService.checkConflicts(request));
     }
 
     @PutMapping("/{id}")

@@ -46,6 +46,10 @@ public class Admin implements UserDetails {
     @Column(nullable = false)
     private boolean enabled = true;
 
+    @Builder.Default
+    @Column(name = "token_version", nullable = false)
+    private int tokenVersion = 0;
+
     public enum Role { ADMIN }
 
     @Override

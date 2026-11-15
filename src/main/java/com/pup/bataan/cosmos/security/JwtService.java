@@ -1,5 +1,6 @@
 package com.pup.bataan.cosmos.security;
 
+import com.pup.bataan.cosmos.entity.Admin;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.DecodingException;
 import io.jsonwebtoken.io.Decoders;
@@ -32,18 +33,28 @@ public class JwtService {
         Map<String, Object> claims = new HashMap<>();
         claims.put("role", userDetails.getAuthorities()
                 .iterator().next().getAuthority());
+        claims.put("ver", getTokenVersion(userDetails));
         return buildToken(claims, userDetails.getUsername(), accessTokenExpiration);
     }
 
     // ── Generate Refresh Token ────────────────────────────────
     public String generateRefreshToken(UserDetails userDetails) {
-        return buildToken(new HashMap<>(), userDetails.getUsername(), refreshTokenExpiration);
+        Map<String, Object> claims = new HashMap<>();
+        claims.put("ver", getTokenVersion(userDetails));
+        return buildToken(claims, userDetails.getUsername(), refreshTokenExpiration);
     }
 
     // ── Validate Token ────────────────────────────────────────
     public boolean isTokenValid(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return username.equals(userDetails.getUsername()) && !isTokenExpired(token);
+        Claims claims = extractAllClaims(token);
+        Integer tokenVersion = claims.get("ver", Integer.class);
+        return claims.getSubject().equals(userDetails.getUsername())
+                && (tokenVersion == null ? 0 : tokenVersion) == getTokenVersion(userDetails)
+                && !claims.getExpiration().before(new Date());
+    }
+
+    private int getTokenVersion(UserDetails userDetails) {
+        return userDetails instanceof Admin admin ? admin.getTokenVersion() : 0;
     }
 
     // ── Extract Username ──────────────────────────────────────
@@ -65,14 +76,6 @@ public class JwtService {
                 .expiration(new Date(System.currentTimeMillis() + expiration))
                 .signWith(getSigningKey())
                 .compact();
-    }
-
-    private boolean isTokenExpired(String token) {
-        return extractExpiration(token).before(new Date());
-    }
-
-    private Date extractExpiration(String token) {
-        return extractClaim(token, Claims::getExpiration);
     }
 
     private <T> T extractClaim(String token, Function<Claims, T> claimsResolver) {

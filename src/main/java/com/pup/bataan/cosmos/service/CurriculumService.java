@@ -11,8 +11,11 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 @Service
 @RequiredArgsConstructor
@@ -51,7 +54,7 @@ public class CurriculumService {
     public CurriculumResponse create(CreateCurriculumRequest request) {
         Curriculum curriculum = Curriculum.builder()
                 .program(request.getProgram().trim())
-                .yearLevel(request.getYearLevel().trim())
+                .yearLevel(serializeYearLevels(request.getYearLevels(), request.getYearLevel()))
                 .semester(request.getSemester().trim())
                 .academicYear(request.getAcademicYear().trim())
                 .status(request.getStatus() != null ? request.getStatus() : "Active")
@@ -69,8 +72,9 @@ public class CurriculumService {
         if (request.getProgram() != null && !request.getProgram().isBlank()) {
             curriculum.setProgram(request.getProgram().trim());
         }
-        if (request.getYearLevel() != null && !request.getYearLevel().isBlank()) {
-            curriculum.setYearLevel(request.getYearLevel().trim());
+        if ((request.getYearLevels() != null && !request.getYearLevels().isEmpty())
+                || (request.getYearLevel() != null && !request.getYearLevel().isBlank())) {
+            curriculum.setYearLevel(serializeYearLevels(request.getYearLevels(), request.getYearLevel()));
         }
         if (request.getSemester() != null && !request.getSemester().isBlank()) {
             curriculum.setSemester(request.getSemester().trim());
@@ -110,6 +114,28 @@ public class CurriculumService {
         }
     }
 
+    private String serializeYearLevels(List<String> yearLevels, String legacyYearLevel) {
+        List<String> values = yearLevels != null && !yearLevels.isEmpty()
+                ? yearLevels
+                : parseYearLevels(legacyYearLevel);
+        return String.join(", ", values);
+    }
+
+    private List<String> parseYearLevels(String value) {
+        if (value == null || value.isBlank()) {
+            return List.of();
+        }
+
+        Set<String> normalized = new LinkedHashSet<>();
+        for (String part : value.split("(?i)\\s*(?:,|&|\\band\\b)\\s*")) {
+            String year = part.trim();
+            if (!year.isEmpty()) {
+                normalized.add(year);
+            }
+        }
+        return new ArrayList<>(normalized);
+    }
+
     private List<Map<String, Object>> deserializeSubjects(String subjectsJson) {
         if (subjectsJson == null || subjectsJson.isBlank()) {
             return List.of();
@@ -144,6 +170,7 @@ public class CurriculumService {
                 .id(curriculum.getId())
                 .program(curriculum.getProgram())
                 .yearLevel(curriculum.getYearLevel())
+                .yearLevels(parseYearLevels(curriculum.getYearLevel()))
                 .semester(curriculum.getSemester())
                 .academicYear(curriculum.getAcademicYear())
                 .status(curriculum.getStatus())

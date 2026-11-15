@@ -3,3 +3,6 @@ spring:
     name: cosmos
   profiles:
     active: dev
+
+cosmos:
+  frontend-url: ${COSMOS_FRONTEND_URL:http://localhost:5173}

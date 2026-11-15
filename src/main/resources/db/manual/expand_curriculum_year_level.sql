@@ -1,0 +1,2 @@
+ALTER TABLE curricula
+    MODIFY COLUMN year_level VARCHAR(100) NOT NULL;

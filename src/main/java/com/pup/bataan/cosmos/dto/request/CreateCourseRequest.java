@@ -19,7 +19,6 @@ public class CreateCourseRequest {
     @NotBlank(message = "Program name is required")
     private String name;
 
-    @NotBlank(message = "Department is required")
     private String department;
 
     @NotBlank(message = "Duration is required")
@@ -30,7 +29,6 @@ public class CreateCourseRequest {
 
     private String status;
 
-    @NotBlank(message = "Description is required")
     private String description;
 
     @Min(value = 1900, message = "Year established must be valid")

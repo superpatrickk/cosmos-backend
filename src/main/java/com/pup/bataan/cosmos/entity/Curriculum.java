@@ -23,7 +23,7 @@ public class Curriculum {
     @Column(nullable = false, length = 50)
     private String program;
 
-    @Column(nullable = false, length = 30)
+    @Column(nullable = false, length = 100)
     private String yearLevel;
 
     @Column(nullable = false, length = 30)

@@ -43,11 +43,11 @@ public class CourseService {
         Course course = Course.builder()
                 .code(request.getCode().trim().toUpperCase(Locale.ROOT))
                 .name(request.getName().trim())
-                .department(request.getDepartment().trim())
+                .department(normalizeOptional(request.getDepartment()))
                 .duration(request.getDuration().trim())
                 .students(request.getStudents() != null ? request.getStudents() : 0)
                 .status(parseStatus(request.getStatus()))
-                .description(request.getDescription().trim())
+                .description(normalizeOptional(request.getDescription()))
                 .yearEstablished(request.getYearEstablished() != null ? request.getYearEstablished() : 2000)
                 .totalSections(request.getTotalSections() != null ? request.getTotalSections() : 0)
                 .build();
@@ -126,6 +126,10 @@ public class CourseService {
             case "inactive" -> CourseStatus.INACTIVE;
             default -> CourseStatus.ACTIVE;
         };
+    }
+
+    private String normalizeOptional(String value) {
+        return value == null ? "" : value.trim();
     }
 
     private String formatStatus(CourseStatus status) {

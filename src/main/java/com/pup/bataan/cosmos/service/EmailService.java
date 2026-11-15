@@ -115,6 +115,41 @@ public class EmailService {
         return sentCount;
     }
 
+    public void sendPasswordResetEmail(String toEmail, String resetUrl) {
+        String htmlBody = """
+                <html><body style="font-family: Arial, sans-serif; color: #222; line-height: 1.6;">
+                  <div style="max-width: 560px; margin: 0 auto; padding: 28px; border: 1px solid #eee; border-radius: 12px;">
+                    <h2 style="margin-top: 0; color: #7d1f1f;">COSMOS Password Reset</h2>
+                    <p>We received a request to reset the password for your COSMOS account.</p>
+                    <p><a href="%s" style="display: inline-block; padding: 12px 20px; border-radius: 8px; background: #7d1f1f; color: #fff; text-decoration: none;">Reset password</a></p>
+                    <p>This link expires in 30 minutes and can only be used once. If you did not request a reset, you can ignore this email.</p>
+                  </div>
+                </body></html>
+                """.formatted(org.springframework.web.util.HtmlUtils.htmlEscape(resetUrl));
+
+        try {
+            MimeMessage message = mailSender.createMimeMessage();
+            MimeMessageHelper helper = new MimeMessageHelper(
+                    message, true, StandardCharsets.UTF_8.name()
+            );
+            helper.setFrom(fromEmail);
+            helper.setTo(toEmail);
+            helper.setSubject("Reset your COSMOS password");
+            helper.setText(
+                    "Use this link to reset your COSMOS password. It expires in 30 minutes and can only be used once:\n"
+                            + resetUrl
+                            + "\n\nIf you did not request a reset, you can ignore this email.",
+                    htmlBody
+            );
+            mailSender.send(message);
+        } catch (MailException | MessagingException exception) {
+            log.error("Failed to send a password reset email.", exception);
+            throw new IllegalStateException(
+                    "Unable to send password reset instructions. Please try again later."
+            );
+        }
+    }
+
     private List<ScheduleEntry> getFacultySchedules(String facultyName) {
         return scheduleRepository.findByFacultyNameContainingIgnoreCase(facultyName)
                 .stream()

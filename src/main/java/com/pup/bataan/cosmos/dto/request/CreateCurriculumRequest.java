@@ -21,6 +21,8 @@ public class CreateCurriculumRequest {
     @NotBlank(message = "Year level is required")
     private String yearLevel;
 
+    private List<String> yearLevels;
+
     @NotBlank(message = "Semester is required")
     private String semester;
 

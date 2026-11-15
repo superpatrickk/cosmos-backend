@@ -18,6 +18,8 @@ public class UpdateCurriculumRequest {
 
     private String yearLevel;
 
+    private List<String> yearLevels;
+
     private String semester;
 
     private String academicYear;

@@ -1,8 +1,11 @@
 package com.pup.bataan.cosmos.controller;
 
 import com.pup.bataan.cosmos.dto.request.LoginRequest;
+import com.pup.bataan.cosmos.dto.request.ForgotPasswordRequest;
+import com.pup.bataan.cosmos.dto.request.ResetPasswordRequest;
 import com.pup.bataan.cosmos.dto.response.AuthResponse;
 import com.pup.bataan.cosmos.service.AuthService;
+import com.pup.bataan.cosmos.service.PasswordResetService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
@@ -16,6 +19,23 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
 
     private final AuthService authService;
+    private final PasswordResetService passwordResetService;
+
+    @PostMapping("/forgot-password")
+    public ResponseEntity<String> forgotPassword(
+            @Valid @RequestBody ForgotPasswordRequest request) {
+        passwordResetService.requestPasswordReset(request.getEmail());
+        return ResponseEntity.ok(
+                "If an account exists for that email, password reset instructions will be sent."
+        );
+    }
+
+    @PostMapping("/reset-password")
+    public ResponseEntity<String> resetPassword(
+            @Valid @RequestBody ResetPasswordRequest request) {
+        passwordResetService.resetPassword(request.getToken(), request.getNewPassword());
+        return ResponseEntity.ok("Password reset successfully. You can now sign in.");
+    }
 
     // POST /api/auth/login
     @PostMapping("/login")
