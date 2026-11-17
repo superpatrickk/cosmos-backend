@@ -23,8 +23,14 @@ public class Room {
     @Column(name = "room_name", nullable = false, length = 100)
     private String name;
 
+    @Column(name = "name", nullable = false, length = 100)
+    private String legacyName;
+
     @Column(name = "room_code", nullable = false, length = 50, unique = true)
     private String code;
+
+    @Column(name = "code", nullable = false, length = 50)
+    private String legacyCode;
 
     @Column(nullable = false, length = 100)
     private String building;
@@ -35,7 +41,9 @@ public class Room {
     @Column(nullable = false)
     private Integer capacity;
 
-    // `type` column removed from DB
+    @Column(name = "type", nullable = false, length = 50)
+    private String legacyType;
+
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -47,6 +55,9 @@ public class Room {
         if (name != null) {
             name = name.trim();
         }
+        if (legacyName != null) {
+            legacyName = legacyName.trim();
+        }
         if (building != null) {
             building = building.trim();
         }
@@ -56,7 +67,6 @@ public class Room {
         if (floor != null) {
             floor = floor.trim();
         }
-        // type column removed from DB
         // description and amenities columns removed from DB; nothing to normalize here
         if (status == null) {
             status = RoomStatus.AVAILABLE;

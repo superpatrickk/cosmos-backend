@@ -5,6 +5,7 @@ import com.pup.bataan.cosmos.dto.request.UpdateRoomRequest;
 import com.pup.bataan.cosmos.dto.response.RoomResponse;
 import com.pup.bataan.cosmos.entity.Room;
 import com.pup.bataan.cosmos.entity.RoomStatus;
+import com.pup.bataan.cosmos.exception.ResourceConflictException;
 import com.pup.bataan.cosmos.exception.ResourceNotFoundException;
 import com.pup.bataan.cosmos.repository.RoomRepository;
 import lombok.RequiredArgsConstructor;
@@ -40,13 +41,20 @@ public class RoomService {
 
     @Transactional
     public RoomResponse create(CreateRoomRequest request) {
+        String code = request.getCode().trim();
+        if (roomRepository.existsByCodeIgnoreCase(code)) {
+            throw new ResourceConflictException("A room with this code already exists.");
+        }
+
         Room room = Room.builder()
                 .name(request.getName().trim())
-            .code(request.getCode().trim())
+                .legacyName(request.getName().trim())
+                .code(code)
+                .legacyCode(code)
                 .building(request.getBuilding().trim())
                 .floor(request.getFloor().trim())
                 .capacity(request.getCapacity())
-                // type removed from DB
+                .legacyType("Unspecified")
                 .status(parseStatus(request.getStatus()))
                 .build();
 
@@ -56,13 +64,27 @@ public class RoomService {
     @Transactional
     public RoomResponse update(Long id, UpdateRoomRequest request) {
         Room room = findEntityById(id);
-        if (request.getName() != null && !request.getName().isBlank()) room.setName(request.getName().trim());
-        if (request.getName() != null && !request.getName().isBlank()) room.setName(request.getName().trim());
-        if (request.getCode() != null && !request.getCode().isBlank()) room.setCode(request.getCode().trim());
+        if (request.getCode() != null
+                && !request.getCode().isBlank()
+                && !request.getCode().trim().equalsIgnoreCase(room.getCode())
+                && roomRepository.existsByCodeIgnoreCaseAndIdNot(request.getCode().trim(), id)) {
+            throw new ResourceConflictException("A room with this code already exists.");
+        }
+
+        if (request.getName() != null && !request.getName().isBlank()) {
+            String name = request.getName().trim();
+            room.setName(name);
+            room.setLegacyName(name);
+        }
+
+        if (request.getCode() != null && !request.getCode().isBlank()) {
+            String code = request.getCode().trim();
+            room.setCode(code);
+            room.setLegacyCode(code);
+        }
         if (request.getBuilding() != null && !request.getBuilding().isBlank()) room.setBuilding(request.getBuilding().trim());
         if (request.getFloor() != null && !request.getFloor().isBlank()) room.setFloor(request.getFloor().trim());
         if (request.getCapacity() != null) room.setCapacity(request.getCapacity());
-        // type removed from DB
         if (request.getStatus() != null && !request.getStatus().isBlank()) room.setStatus(parseStatus(request.getStatus()));
         // description and amenities removed — nothing to update
         return toResponse(roomRepository.save(room));

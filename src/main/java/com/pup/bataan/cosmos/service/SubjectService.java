@@ -52,10 +52,13 @@ public class SubjectService {
                         ? request.getDescription().trim()
                         : request.getName().trim())
                 .units(request.getUnits() != null ? request.getUnits() : 3)
+                .lec(request.getLec() != null ? request.getLec() : 0)
+                .lab(request.getLab() != null ? request.getLab() : 0)
                 .type(request.getType().trim())
                 .prerequisite(request.getPrerequisite().trim())
                 .course(normalizedCourse)
                 .yearLevel(request.getYearLevel().trim())
+                .academicYear(request.getAcademicYear().trim())
                 .semester(request.getSemester().trim())
                 .description(request.getDescription().trim())
                 .status(request.getStatus() == null || request.getStatus().isBlank() ? "Active" : request.getStatus().trim())
@@ -92,6 +95,12 @@ public class SubjectService {
         if (request.getUnits() != null) {
             subject.setUnits(request.getUnits());
         }
+        if (request.getLec() != null) {
+            subject.setLec(request.getLec());
+        }
+        if (request.getLab() != null) {
+            subject.setLab(request.getLab());
+        }
         if (request.getType() != null && !request.getType().isBlank()) {
             subject.setType(request.getType().trim());
         }
@@ -103,6 +112,9 @@ public class SubjectService {
         }
         if (request.getYearLevel() != null && !request.getYearLevel().isBlank()) {
             subject.setYearLevel(request.getYearLevel().trim());
+        }
+        if (request.getAcademicYear() != null && !request.getAcademicYear().isBlank()) {
+            subject.setAcademicYear(request.getAcademicYear().trim());
         }
         if (request.getSemester() != null && !request.getSemester().isBlank()) {
             subject.setSemester(request.getSemester().trim());
@@ -135,10 +147,13 @@ public class SubjectService {
                     ? subject.getDescription()
                     : subject.getName())
                 .units(subject.getUnits())
+                .lec(subject.getLec())
+                .lab(subject.getLab())
                 .type(subject.getType())
                 .prerequisite(subject.getPrerequisite())
                 .course(subject.getCourse())
                 .yearLevel(subject.getYearLevel())
+                .academicYear(subject.getAcademicYear())
                 .semester(subject.getSemester())
                 .description(subject.getDescription())
                 .status(subject.getStatus())

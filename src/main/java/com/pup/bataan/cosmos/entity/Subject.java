@@ -35,6 +35,14 @@ public class Subject {
     @Builder.Default
     private Integer units = 3;
 
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer lec = 0;
+
+    @Column(nullable = false)
+    @Builder.Default
+    private Integer lab = 0;
+
     @Column(nullable = false, length = 40)
     private String type;
 
@@ -46,6 +54,9 @@ public class Subject {
 
     @Column(nullable = false, length = 20)
     private String yearLevel;
+
+    @Column(length = 20)
+    private String academicYear;
 
     @Column(nullable = false, length = 30)
     private String semester;
@@ -66,9 +77,12 @@ public class Subject {
         if (prerequisite != null) prerequisite = prerequisite.trim();
         if (course != null) course = course.trim().toUpperCase();
         if (yearLevel != null) yearLevel = yearLevel.trim();
+        if (academicYear != null) academicYear = academicYear.trim();
         if (semester != null) semester = semester.trim();
         if (description != null) description = description.trim();
         if (status == null || status.isBlank()) status = "Active";
         if (units == null) units = 3;
+        if (lec == null) lec = 0;
+        if (lab == null) lab = 0;
     }
 }

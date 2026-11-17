@@ -21,6 +21,12 @@ public class CreateSubjectRequest {
     @Min(value = 1, message = "Units must be at least 1")
     private Integer units;
 
+    @Min(value = 0, message = "Lecture hours cannot be negative")
+    private Integer lec;
+
+    @Min(value = 0, message = "Laboratory hours cannot be negative")
+    private Integer lab;
+
     @NotBlank(message = "Subject type is required")
     private String type;
 
@@ -32,6 +38,9 @@ public class CreateSubjectRequest {
 
     @NotBlank(message = "Year level is required")
     private String yearLevel;
+
+    @NotBlank(message = "Curriculum is required")
+    private String academicYear;
 
     @NotBlank(message = "Semester is required")
     private String semester;

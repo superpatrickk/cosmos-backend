@@ -10,6 +10,8 @@ import java.util.List;
 @Repository
 public interface RoomRepository extends JpaRepository<Room, Long> {
     long countByStatus(RoomStatus status);
+    boolean existsByCodeIgnoreCase(String code);
+    boolean existsByCodeIgnoreCaseAndIdNot(String code, Long id);
 
     List<Room> findAllByOrderByNameAsc();
 
