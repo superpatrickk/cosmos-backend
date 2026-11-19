@@ -48,7 +48,6 @@ class EmailServiceTest {
                 .department("Computer Science")
                 .email("jane.doe@example.com")
                 .phone("09123456789")
-                .specialization("Algorithms")
                 .build();
 
         ScheduleEntry schedule = ScheduleEntry.builder()

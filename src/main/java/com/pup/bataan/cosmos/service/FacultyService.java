@@ -33,8 +33,8 @@ public class FacultyService {
     public List<FacultyMemberResponse> getAll(String search) {
         List<FacultyMember> facultyMembers = (search == null || search.isBlank())
                 ? facultyMemberRepository.findAllByOrderByNameAsc()
-                : facultyMemberRepository.findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrEmailContainingIgnoreCaseOrSpecializationContainingIgnoreCase(
-                        search, search, search, search
+                : facultyMemberRepository.findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrEmailContainingIgnoreCase(
+                        search, search, search
                 );
 
         return facultyMembers.stream()
@@ -68,7 +68,6 @@ public class FacultyService {
                 .department(isGEEDType(facultyType) ? "GEED" : String.join(", ", programs))
                 .email(email != null ? email : "")
                 .phone(normalizeOptional(request.getPhone()) != null ? normalizeOptional(request.getPhone()) : "")
-                .specialization(request.getSpecialization().trim())
                 .status(parseStatus(request.getStatus()))
                 .build();
 
@@ -106,9 +105,6 @@ public class FacultyService {
         if (request.getPhone() != null) {
             facultyMember.setPhone(normalizeOptional(request.getPhone()) != null ? normalizeOptional(request.getPhone()) : "");
         }
-        if (request.getSpecialization() != null && !request.getSpecialization().isBlank()) {
-            facultyMember.setSpecialization(request.getSpecialization().trim());
-        }
         if (request.getStatus() != null && !request.getStatus().isBlank()) {
             facultyMember.setStatus(parseStatus(request.getStatus()));
         }
@@ -136,7 +132,6 @@ public class FacultyService {
                 .department(facultyMember.getDepartment())
                 .email(facultyMember.getEmail())
                 .phone(facultyMember.getPhone())
-                .specialization(facultyMember.getSpecialization())
                 .status(formatStatus(facultyMember.getStatus()))
                 .build();
     }

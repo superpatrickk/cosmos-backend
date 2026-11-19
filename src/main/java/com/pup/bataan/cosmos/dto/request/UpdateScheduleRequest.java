@@ -18,6 +18,7 @@ public class UpdateScheduleRequest {
     private String day;
     private String startTime;
     private String endTime;
+    private String type;
     private String courseCode;
     private String yearLevel;
     private String section;

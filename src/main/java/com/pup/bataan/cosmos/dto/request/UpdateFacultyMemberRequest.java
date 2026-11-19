@@ -23,6 +23,5 @@ public class UpdateFacultyMemberRequest {
     private String email;
 
     private String phone;
-    private String specialization;
     private String status;
 }

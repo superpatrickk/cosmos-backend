@@ -33,29 +33,27 @@ public class ScheduleService {
     }
 
     public ScheduleConflictCheckResponse checkConflicts(CreateScheduleRequest request) {
-        LocalTime requestedStart = LocalTime.parse(request.getStartTime());
-        LocalTime requestedEnd = LocalTime.parse(request.getEndTime());
+        List<ScheduleConflictResponse> conflicts = findMeetingConflicts(
+                request,
+                request.getDay(),
+                request.getStartTime(),
+                request.getEndTime()
+        );
 
-        List<ScheduleConflictResponse> conflicts = scheduleRepository.findAll().stream()
-                .filter(schedule -> "active".equalsIgnoreCase(schedule.getStatus()))
-                .filter(schedule -> sameDay(schedule.getDay(), request.getDay()))
-                .filter(schedule -> overlaps(
-                        requestedStart,
-                        requestedEnd,
-                        LocalTime.parse(schedule.getStartTime()),
-                        LocalTime.parse(schedule.getEndTime())
-                ))
-                .filter(schedule -> conflictsWith(schedule, request))
-                .map(schedule -> ScheduleConflictResponse.builder()
-                        .id(schedule.getId())
-                        .subjectCode(schedule.getSubjectCode())
-                        .faculty(schedule.getFacultyName())
-                        .room(schedule.getRoomName())
-                        .day(schedule.getDay())
-                        .startTime(schedule.getStartTime())
-                        .endTime(schedule.getEndTime())
-                        .build())
-                .toList();
+        if ("Lec/Lab".equalsIgnoreCase(request.getType())
+                && request.getDay2() != null
+                && request.getStartTime2() != null
+                && request.getEndTime2() != null) {
+            conflicts = java.util.stream.Stream.concat(
+                    conflicts.stream(),
+                    findMeetingConflicts(
+                            request,
+                            request.getDay2(),
+                            request.getStartTime2(),
+                            request.getEndTime2()
+                    ).stream()
+            ).distinct().toList();
+        }
 
         return ScheduleConflictCheckResponse.builder()
                 .hasConflict(!conflicts.isEmpty())
@@ -72,6 +70,7 @@ public class ScheduleService {
                 .roomId(request.getRoomId())
                 .roomName(request.getRoomName())
                 .day(request.getDay())
+                .type(normalizeOptional(request.getType()))
                 .startTime(request.getStartTime())
                 .endTime(request.getEndTime())
                 .courseCode(request.getCourseCode())
@@ -81,7 +80,36 @@ public class ScheduleService {
                 .academicYear(request.getAcademicYear())
                 .status(request.getStatus() == null || request.getStatus().isBlank() ? "Active" : request.getStatus())
                 .build();
-        return scheduleRepository.save(entry);
+        ScheduleEntry saved = scheduleRepository.save(entry);
+
+        if ("Lec/Lab".equalsIgnoreCase(request.getType())
+                && request.getDay2() != null
+                && request.getStartTime2() != null
+                && request.getEndTime2() != null) {
+            if (sameDay(request.getDay(), request.getDay2())) {
+                throw new IllegalArgumentException("Second day must be different from the first day.");
+            }
+            ScheduleEntry secondMeeting = ScheduleEntry.builder()
+                    .subjectCode(request.getSubjectCode())
+                    .subjectName(request.getSubjectName())
+                    .facultyName(request.getFacultyName())
+                    .roomId(request.getRoomId())
+                    .roomName(request.getRoomName())
+                    .day(request.getDay2())
+                    .type("Lec/Lab")
+                    .startTime(request.getStartTime2())
+                    .endTime(request.getEndTime2())
+                    .courseCode(request.getCourseCode())
+                    .yearLevel(request.getYearLevel())
+                    .section(request.getSection())
+                    .semester(request.getSemester())
+                    .academicYear(request.getAcademicYear())
+                    .status(request.getStatus() == null || request.getStatus().isBlank() ? "Active" : request.getStatus())
+                    .build();
+            scheduleRepository.save(secondMeeting);
+        }
+
+        return saved;
     }
 
     @Transactional
@@ -93,6 +121,7 @@ public class ScheduleService {
         if (request.getRoomName() != null) entry.setRoomName(request.getRoomName());
         if (request.getRoomId() != null) entry.setRoomId(request.getRoomId());
         if (request.getDay() != null) entry.setDay(request.getDay());
+        if (request.getType() != null) entry.setType(request.getType());
         if (request.getStartTime() != null) entry.setStartTime(request.getStartTime());
         if (request.getEndTime() != null) entry.setEndTime(request.getEndTime());
         if (request.getCourseCode() != null) entry.setCourseCode(request.getCourseCode());
@@ -131,5 +160,43 @@ public class ScheduleService {
 
     private boolean overlaps(LocalTime firstStart, LocalTime firstEnd, LocalTime secondStart, LocalTime secondEnd) {
         return firstStart.isBefore(secondEnd) && secondStart.isBefore(firstEnd);
+    }
+
+    private List<ScheduleConflictResponse> findMeetingConflicts(
+            CreateScheduleRequest request,
+            String day,
+            String startTime,
+            String endTime
+    ) {
+        LocalTime requestedStart = LocalTime.parse(startTime);
+        LocalTime requestedEnd = LocalTime.parse(endTime);
+
+        return scheduleRepository.findAll().stream()
+                .filter(schedule -> "active".equalsIgnoreCase(schedule.getStatus()))
+                .filter(schedule -> sameDay(schedule.getDay(), day))
+                .filter(schedule -> overlaps(
+                        requestedStart,
+                        requestedEnd,
+                        LocalTime.parse(schedule.getStartTime()),
+                        LocalTime.parse(schedule.getEndTime())
+                ))
+                .filter(schedule -> conflictsWith(schedule, request))
+                .map(schedule -> ScheduleConflictResponse.builder()
+                        .id(schedule.getId())
+                        .subjectCode(schedule.getSubjectCode())
+                        .faculty(schedule.getFacultyName())
+                        .room(schedule.getRoomName())
+                        .day(schedule.getDay())
+                        .startTime(schedule.getStartTime())
+                        .endTime(schedule.getEndTime())
+                        .build())
+                .toList();
+    }
+
+    private String normalizeOptional(String value) {
+        if (value == null || value.isBlank()) {
+            return null;
+        }
+        return value.trim();
     }
 }

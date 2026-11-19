@@ -46,9 +46,6 @@ public class FacultyMember {
     @Builder.Default
     private List<String> programs = new ArrayList<>();
 
-    @Column(nullable = false, length = 100)
-    private String specialization;
-
     @Enumerated(EnumType.STRING)
     @Column(nullable = false, length = 20)
     @Builder.Default
@@ -80,9 +77,6 @@ public class FacultyMember {
             phone = phone.trim();
         } else {
             phone = "";
-        }
-        if (specialization != null) {
-            specialization = specialization.trim();
         }
         if (status == null) {
             status = FacultyStatus.ACTIVE;

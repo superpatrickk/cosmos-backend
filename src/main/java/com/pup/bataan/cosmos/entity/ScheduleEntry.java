@@ -38,6 +38,9 @@ public class ScheduleEntry {
     @Column(nullable = false, length = 20)
     private String day;
 
+    @Column(length = 30)
+    private String type;
+
     @Column(nullable = false, length = 10)
     private String startTime;
 
@@ -71,6 +74,7 @@ public class ScheduleEntry {
         if (facultyName != null) facultyName = facultyName.trim();
         if (roomName != null) roomName = roomName.trim();
         if (day != null) day = day.trim();
+        if (type != null) type = type.trim();
         if (courseCode != null) courseCode = courseCode.trim().toUpperCase();
         if (yearLevel != null) yearLevel = yearLevel.trim();
         if (section != null) section = section.trim().toUpperCase();

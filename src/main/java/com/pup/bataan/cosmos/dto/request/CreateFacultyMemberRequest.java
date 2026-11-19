@@ -30,8 +30,5 @@ public class CreateFacultyMemberRequest {
 
     private String phone;
 
-    @NotBlank(message = "Specialization is required")
-    private String specialization;
-
     private String status;
 }

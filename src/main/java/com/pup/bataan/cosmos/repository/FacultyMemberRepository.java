@@ -14,10 +14,9 @@ public interface FacultyMemberRepository extends JpaRepository<FacultyMember, Lo
 
     List<FacultyMember> findAllByOrderByNameAsc();
 
-    List<FacultyMember> findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrEmailContainingIgnoreCaseOrSpecializationContainingIgnoreCase(
+    List<FacultyMember> findByNameContainingIgnoreCaseOrDepartmentContainingIgnoreCaseOrEmailContainingIgnoreCase(
             String name,
             String department,
-            String email,
-            String specialization
+            String email
     );
 }
