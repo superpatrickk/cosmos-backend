@@ -1,0 +1,4 @@
+[submodule "cosmos-frontend"]
+	path = cosmos-frontend
+	url = https://github.com/superpatrickk/cosmos-frontend.git
+	branch = main
