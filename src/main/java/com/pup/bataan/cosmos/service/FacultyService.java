@@ -12,8 +12,10 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -66,7 +68,7 @@ public class FacultyService {
                 .type(facultyType)
                 .programs(programs)
                 .department(isGEEDType(facultyType) ? "GEED" : String.join(", ", programs))
-                .email(email != null ? email : "")
+                .email(email)
                 .phone(normalizeOptional(request.getPhone()) != null ? normalizeOptional(request.getPhone()) : "")
                 .status(parseStatus(request.getStatus()))
                 .build();
@@ -78,20 +80,22 @@ public class FacultyService {
     public FacultyMemberResponse update(Long id, UpdateFacultyMemberRequest request) {
         FacultyMember facultyMember = findEntityById(id);
 
-        if (request.getName() != null && !request.getName().isBlank()) {
+        if (request.getName() != null) {
             facultyMember.setName(normalizeName(request.getName()));
         }
+
         if (request.getType() != null && !request.getType().isBlank()) {
-            String facultyType = normalizeFacultyType(request.getType());
-            facultyMember.setType(facultyType);
+            facultyMember.setType(normalizeFacultyType(request.getType()));
         }
+
         if (request.getPrograms() != null || request.getDepartment() != null || request.getType() != null) {
             String facultyType = facultyMember.getType() != null ? facultyMember.getType() : "Core";
             List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment(), facultyType);
             if (!isGEEDType(facultyType) && programs.isEmpty()) {
                 throw new IllegalArgumentException("At least one program is required for non-GEED faculty.");
             }
-            facultyMember.setPrograms(programs);
+            facultyMember.getPrograms().clear();
+            facultyMember.getPrograms().addAll(programs);
             facultyMember.setDepartment(isGEEDType(facultyType) ? "GEED" : String.join(", ", programs));
         }
         if (request.getEmail() != null) {
@@ -100,7 +104,7 @@ public class FacultyService {
                     && facultyMemberRepository.findByEmail(normalizedEmail).isPresent()) {
                 throw new DataIntegrityViolationException("A faculty member with this email already exists.");
             }
-            facultyMember.setEmail(normalizedEmail != null ? normalizedEmail : "");
+            facultyMember.setEmail(normalizedEmail);
         }
         if (request.getPhone() != null) {
             facultyMember.setPhone(normalizeOptional(request.getPhone()) != null ? normalizeOptional(request.getPhone()) : "");
@@ -138,7 +142,7 @@ public class FacultyService {
 
     private List<String> normalizePrograms(List<String> requestedPrograms, String legacyDepartment, String facultyType) {
         if (isGEEDType(facultyType)) {
-            return List.of();
+            return new ArrayList<>();
         }
 
         List<String> source = requestedPrograms;
@@ -146,13 +150,13 @@ public class FacultyService {
             source = List.of(legacyDepartment.split(","));
         }
         if (source == null) {
-            return List.of();
+            return new ArrayList<>();
         }
         return source.stream()
                 .filter(program -> program != null && !program.isBlank())
                 .map(program -> program.trim().toUpperCase(Locale.ROOT))
                 .distinct()
-                .toList();
+                .collect(Collectors.toCollection(ArrayList::new));
     }
 
     private String normalizeName(String value) {

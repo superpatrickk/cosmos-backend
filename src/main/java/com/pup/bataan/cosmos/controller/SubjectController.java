@@ -35,7 +35,7 @@ public class SubjectController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<SubjectResponse> update(@PathVariable Long id, @RequestBody UpdateSubjectRequest request) {
+    public ResponseEntity<SubjectResponse> update(@PathVariable Long id, @Valid @RequestBody UpdateSubjectRequest request) {
         return ResponseEntity.ok(subjectService.update(id, request));
     }
 

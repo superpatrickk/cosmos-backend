@@ -1,6 +1,7 @@
 package com.pup.bataan.cosmos.dto.request;
 
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,6 +20,7 @@ public class CreateSubjectRequest {
     private String name;
 
     @Min(value = 1, message = "Units must be at least 1")
+    @Max(value = 15, message = "Units cannot exceed 15")
     private Integer units;
 
     @Min(value = 0, message = "Lecture hours cannot be negative")

@@ -60,18 +60,18 @@ public class FacultyMember {
         if (programs == null) {
             programs = new ArrayList<>();
         }
-        programs = programs.stream()
+        List<String> normalizedPrograms = programs.stream()
                 .filter(program -> program != null && !program.isBlank())
                 .map(program -> program.trim().toUpperCase(Locale.ROOT))
                 .distinct()
-                .collect(Collectors.toCollection(ArrayList::new));
+                .toList();
+        programs.clear();
+        programs.addAll(normalizedPrograms);
         if (department != null) {
             department = department.trim();
         }
         if (email != null) {
             email = email.trim().toLowerCase();
-        } else {
-            email = "";
         }
         if (phone != null) {
             phone = phone.trim();
