@@ -28,7 +28,7 @@ public class FacultyMember {
     @Column(nullable = false, length = 100)
     private String name;
 
-    @Column(length = 40)
+    @Column(length = 60)
     private String type;
 
     @Column(nullable = false, length = 100)
@@ -56,6 +56,17 @@ public class FacultyMember {
     private void normalizeFields() {
         if (name != null) {
             name = name.trim();
+        }
+        if (type != null) {
+            type = switch (type.trim()) {
+                case "Core", "GEED (Full-time)", "FULL TIME FACULTY CORE" -> "Full Time Faculty Core";
+                case "Allied", "FULL TIME FACULTY ALLIED" -> "Full Time Faculty Allied";
+                case "FULL TIME PART TIME FACULTY CORE" -> "Full Time Faculty Core";
+                case "FULL TIME PART TIME FACULTY ALLIED" -> "Full Time Faculty Allied";
+                case "Part-time", "GEED (Part-time)", "PART TIME FACULTY CORE" -> "Part Time Faculty Core";
+                case "PART TIME FACULTY ALLIED" -> "Part Time Faculty Allied";
+                default -> type.trim();
+            };
         }
         if (programs == null) {
             programs = new ArrayList<>();

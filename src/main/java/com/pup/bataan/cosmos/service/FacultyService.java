@@ -23,11 +23,10 @@ import java.util.stream.Collectors;
 public class FacultyService {
 
     private static final List<String> VALID_FACULTY_TYPES = List.of(
-            "Core",
-            "Allied",
-            "Part-time",
-            "GEED (Full-time)",
-            "GEED (Part-time)"
+            "Full Time Faculty Core",
+            "Full Time Faculty Allied",
+            "Part Time Faculty Core",
+            "Part Time Faculty Allied"
     );
 
     private final FacultyMemberRepository facultyMemberRepository;
@@ -58,16 +57,16 @@ public class FacultyService {
             throw new DataIntegrityViolationException("A faculty member with this email already exists.");
         }
 
-        List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment(), facultyType);
-        if (!isGEEDType(facultyType) && programs.isEmpty()) {
-            throw new IllegalArgumentException("At least one program is required for non-GEED faculty.");
+        List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment());
+        if (programs.isEmpty()) {
+            throw new IllegalArgumentException("At least one program is required.");
         }
 
         FacultyMember facultyMember = FacultyMember.builder()
                 .name(normalizedName)
                 .type(facultyType)
                 .programs(programs)
-                .department(isGEEDType(facultyType) ? "GEED" : String.join(", ", programs))
+                .department(String.join(", ", programs))
                 .email(email)
                 .phone(normalizeOptional(request.getPhone()) != null ? normalizeOptional(request.getPhone()) : "")
                 .status(parseStatus(request.getStatus()))
@@ -89,14 +88,13 @@ public class FacultyService {
         }
 
         if (request.getPrograms() != null || request.getDepartment() != null || request.getType() != null) {
-            String facultyType = facultyMember.getType() != null ? facultyMember.getType() : "Core";
-            List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment(), facultyType);
-            if (!isGEEDType(facultyType) && programs.isEmpty()) {
-                throw new IllegalArgumentException("At least one program is required for non-GEED faculty.");
+            List<String> programs = normalizePrograms(request.getPrograms(), request.getDepartment());
+            if (programs.isEmpty()) {
+                throw new IllegalArgumentException("At least one program is required.");
             }
             facultyMember.getPrograms().clear();
             facultyMember.getPrograms().addAll(programs);
-            facultyMember.setDepartment(isGEEDType(facultyType) ? "GEED" : String.join(", ", programs));
+            facultyMember.setDepartment(String.join(", ", programs));
         }
         if (request.getEmail() != null) {
             String normalizedEmail = normalizeOptional(request.getEmail());
@@ -140,14 +138,12 @@ public class FacultyService {
                 .build();
     }
 
-    private List<String> normalizePrograms(List<String> requestedPrograms, String legacyDepartment, String facultyType) {
-        if (isGEEDType(facultyType)) {
-            return new ArrayList<>();
-        }
-
+    private List<String> normalizePrograms(List<String> requestedPrograms, String legacyDepartment) {
         List<String> source = requestedPrograms;
         if ((source == null || source.isEmpty()) && legacyDepartment != null && !legacyDepartment.isBlank()) {
-            source = List.of(legacyDepartment.split(","));
+            source = "GEED".equalsIgnoreCase(legacyDepartment.trim())
+                    ? new ArrayList<>()
+                    : List.of(legacyDepartment.split(","));
         }
         if (source == null) {
             return new ArrayList<>();
@@ -173,6 +169,15 @@ public class FacultyService {
         }
 
         String normalized = value.trim();
+        normalized = switch (normalized) {
+            case "Core", "GEED (Full-time)", "FULL TIME FACULTY CORE" -> "Full Time Faculty Core";
+            case "Allied", "FULL TIME FACULTY ALLIED" -> "Full Time Faculty Allied";
+            case "FULL TIME PART TIME FACULTY CORE" -> "Full Time Faculty Core";
+            case "FULL TIME PART TIME FACULTY ALLIED" -> "Full Time Faculty Allied";
+            case "Part-time", "GEED (Part-time)", "PART TIME FACULTY CORE" -> "Part Time Faculty Core";
+            case "PART TIME FACULTY ALLIED" -> "Part Time Faculty Allied";
+            default -> normalized;
+        };
         if (!VALID_FACULTY_TYPES.contains(normalized)) {
             throw new IllegalArgumentException("Invalid faculty type.");
         }
@@ -185,10 +190,6 @@ public class FacultyService {
             return null;
         }
         return value.trim().toLowerCase(Locale.ROOT);
-    }
-
-    private boolean isGEEDType(String facultyType) {
-        return "GEED (Full-time)".equals(facultyType) || "GEED (Part-time)".equals(facultyType);
     }
 
     private FacultyStatus parseStatus(String status) {
