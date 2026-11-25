@@ -3,6 +3,7 @@ package com.pup.bataan.cosmos.controller;
 import com.pup.bataan.cosmos.dto.request.LoginRequest;
 import com.pup.bataan.cosmos.dto.request.ForgotPasswordRequest;
 import com.pup.bataan.cosmos.dto.request.ResetPasswordRequest;
+import com.pup.bataan.cosmos.dto.request.UpdateAccountProfileRequest;
 import com.pup.bataan.cosmos.dto.response.AuthResponse;
 import com.pup.bataan.cosmos.service.AuthService;
 import com.pup.bataan.cosmos.service.PasswordResetService;
@@ -11,6 +12,9 @@ import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -66,5 +70,14 @@ public class AuthController {
             HttpServletRequest request,
             HttpServletResponse response) {
         return ResponseEntity.ok(authService.refresh(request, response));
+    }
+
+    @PutMapping("/me/profile")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<Void> updateProfile(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateAccountProfileRequest request) {
+        authService.updateProfile(userDetails.getUsername(), request);
+        return ResponseEntity.noContent().build();
     }
 }

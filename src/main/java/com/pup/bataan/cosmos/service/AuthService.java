@@ -1,6 +1,7 @@
 package com.pup.bataan.cosmos.service;
 
 import com.pup.bataan.cosmos.dto.request.LoginRequest;
+import com.pup.bataan.cosmos.dto.request.UpdateAccountProfileRequest;
 import com.pup.bataan.cosmos.dto.response.AuthResponse;
 import com.pup.bataan.cosmos.entity.Admin;
 import com.pup.bataan.cosmos.repository.AdminRepository;
@@ -13,8 +14,11 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.*;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+import org.springframework.dao.DataIntegrityViolationException;
 
 import java.util.Arrays;
+import java.util.Locale;
 
 @Service
 @RequiredArgsConstructor
@@ -95,6 +99,23 @@ public class AuthService {
         authResponse.setEmail(admin.getEmail());
         authResponse.setRole(admin.getRole().name());
         return authResponse;
+    }
+
+    @Transactional
+    public void updateProfile(String username, UpdateAccountProfileRequest request) {
+        Admin admin = adminRepository.findByUsername(username)
+            .orElseThrow(() -> new UsernameNotFoundException("User not found."));
+        String normalizedEmail = request.getEmail().trim().toLowerCase(Locale.ROOT);
+
+        adminRepository.findByEmailIgnoreCase(normalizedEmail)
+            .filter(existingAdmin -> !existingAdmin.getId().equals(admin.getId()))
+            .ifPresent(existingAdmin -> {
+                throw new DataIntegrityViolationException("An account with this email address already exists.");
+            });
+
+        admin.setFullName(request.getFullName().trim());
+        admin.setEmail(normalizedEmail);
+        adminRepository.save(admin);
     }
 
     // ── Logout ────────────────────────────────────────────────
